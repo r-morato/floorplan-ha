@@ -1,0 +1,32 @@
+{
+  "name": "floorplan-ha",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Interactive floor plan panel for Home Assistant: upload your plan images, place entities, assign tap/hold actions.",
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "concurrently -k -n server,web \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "node --watch server/index.mjs",
+    "dev:web": "vite",
+    "build": "tsc --noEmit && vite build",
+    "start": "node server/index.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@mdi/js": "^7.4.47",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}

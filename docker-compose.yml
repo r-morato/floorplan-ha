@@ -1,0 +1,12 @@
+services:
+  floorplan:
+    image: ghcr.io/r-morato/floorplan-ha:latest   # or: build: .
+    container_name: floorplan-ha
+    restart: unless-stopped
+    ports:
+      - "8099:8099"
+    environment:
+      HA_URL: http://homeassistant.local:8123     # your Home Assistant base URL
+      HA_TOKEN: ${HA_TOKEN}                       # long-lived access token (see README)
+    volumes:
+      - ./data:/data                              # layout JSON + uploaded plan images
