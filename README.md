@@ -41,11 +41,14 @@ folder and are part of normal backups.
 
 ```bash
 git clone https://github.com/r-morato/floorplan-ha && cd floorplan-ha
+export HA_URL=http://<home-assistant-ip>:8123
 export HA_TOKEN=<long-lived token>   # HA profile page → Security → Long-lived access tokens
-docker compose up -d --build
+docker compose up -d --build         # builds the image locally
 ```
 
-`docker-compose.yml` sets `HA_URL` (your Home Assistant URL) and persists `./data`.
+On Windows PowerShell use `$env:HA_URL = "..."` and `$env:HA_TOKEN = "..."` instead of `export`.
+
+`docker-compose.yml` reads `HA_URL` and `HA_TOKEN` from your environment and persists `./data`.
 Then add a sidebar item: *Settings → Dashboards → Add dashboard → Webpage*, enter
 `http://<docker-host>:8099`, pick a title and icon (e.g. `mdi:floor-plan`), and keep
 *Show in sidebar* on. (The old `panel_iframe` YAML option was removed in Home
