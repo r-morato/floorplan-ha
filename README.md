@@ -37,7 +37,7 @@ It uses ingress, so there is no port to expose and no token to create; the
 Supervisor authenticates for you. Layout and images persist in the add-on data
 folder and are part of normal backups.
 
-### Option B: Docker container + `panel_iframe` (Container / Core installs)
+### Option B: Docker container + Webpage dashboard (works on any install)
 
 ```bash
 git clone https://github.com/r-morato/floorplan-ha && cd floorplan-ha
@@ -46,16 +46,10 @@ docker compose up -d --build
 ```
 
 `docker-compose.yml` sets `HA_URL` (your Home Assistant URL) and persists `./data`.
-Then add a sidebar item in `configuration.yaml`:
-
-```yaml
-panel_iframe:
-  floorplan:
-    title: Floor plan
-    icon: mdi:floor-plan
-    url: http://<docker-host>:8099
-    require_admin: true
-```
+Then add a sidebar item: *Settings → Dashboards → Add dashboard → Webpage*, enter
+`http://<docker-host>:8099`, pick a title and icon (e.g. `mdi:floor-plan`), and keep
+*Show in sidebar* on. (The old `panel_iframe` YAML option was removed in Home
+Assistant 2024.6.)
 
 Notes for this option:
 
@@ -67,7 +61,7 @@ Notes for this option:
   authenticating proxy.
 - You can also just open `http://<docker-host>:8099` directly.
 - The *Navigate* action changes the parent Home Assistant page when the panel runs
-  inside an iframe on the same origin (add-on ingress). With `panel_iframe` on a
+  inside an iframe on the same origin (add-on ingress). With a Webpage dashboard on a
   different origin it opens the path in the top window instead.
 
 ### Environment variables
