@@ -1,5 +1,6 @@
 import { hass } from './ha';
 import type { ActionConfig, PlanItem } from './types';
+import { canToggle } from './icons';
 
 export interface ActionContext {
   openMoreInfo: (entityId: string) => void;
@@ -14,6 +15,7 @@ export async function runAction(action: ActionConfig, item: PlanItem, ctx: Actio
       case 'more-info':
         return ctx.openMoreInfo(item.entity_id);
       case 'toggle': {
+        if (!canToggle(item.entity_id)) return ctx.openMoreInfo(item.entity_id); // read-only entity: just show info
         const dom = item.entity_id.split('.')[0];
         // script/scene/button have no on/off: "toggle" means run it.
         if (dom === 'script' || dom === 'scene') return hass.callService(dom, 'turn_on', { entity_id: item.entity_id });

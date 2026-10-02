@@ -152,6 +152,7 @@ class HassStore {
       else if (service === 'lock') state = 'locked';
       else if (service === 'unlock') state = 'unlocked';
       if (data.brightness != null) attributes.brightness = data.brightness;
+      if (data.brightness_pct != null) attributes.brightness = Math.round(data.brightness_pct * 2.55);
       entities[id] = { ...e, state, attributes, last_changed: now(), last_updated: now() };
     }
     this.set({ entities });

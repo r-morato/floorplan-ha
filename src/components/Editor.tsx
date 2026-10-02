@@ -145,8 +145,8 @@ function ItemInspector({ selected, entities, onUpdateItem, onDeleteItem, setTab 
         <input placeholder="Custom name (optional)" value={selected.name ?? ''} onChange={(ev) => onUpdateItem({ name: ev.target.value })} />
       </fieldset>
 
-      <ActionEditor label="Tap action" value={selected.tap} onChange={(tap) => onUpdateItem({ tap })} />
-      <ActionEditor label="Hold action" value={selected.hold} onChange={(hold) => onUpdateItem({ hold })} />
+      <ActionEditor entityId={selected.entity_id} label="Tap action" value={selected.tap} onChange={(tap) => onUpdateItem({ tap })} />
+      <ActionEditor entityId={selected.entity_id} label="Hold action" value={selected.hold} onChange={(hold) => onUpdateItem({ hold })} />
 
       <div className="row">
         <button className="danger" onClick={onDeleteItem}>Remove from plan</button>

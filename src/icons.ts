@@ -77,3 +77,7 @@ export function formatState(e?: HassEntity): string {
 
 export const friendlyName = (e: HassEntity | undefined, id: string) => (e?.attributes.friendly_name as string) || id;
 export const TOGGLEABLE = new Set(['light', 'switch', 'fan', 'input_boolean', 'cover', 'lock', 'media_player', 'automation', 'climate', 'humidifier', 'siren']);
+
+/** Domains where on/off (toggle) does something; sensors, binary sensors etc. are read-only. */
+export const CONTROLLABLE = new Set([...TOGGLEABLE, 'script', 'scene', 'button', 'input_button', 'vacuum', 'valve', 'lawn_mower']);
+export const canToggle = (entityId: string) => CONTROLLABLE.has(entityId.split('.')[0]);

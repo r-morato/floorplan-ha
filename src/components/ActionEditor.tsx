@@ -1,4 +1,5 @@
 import type { ActionConfig, ActionKind } from '../types';
+import { canToggle } from '../icons';
 
 const LABELS: Record<ActionKind, string> = {
   none: 'None',
@@ -8,13 +9,14 @@ const LABELS: Record<ActionKind, string> = {
   navigate: 'Navigate',
 };
 
-export function ActionEditor({ label, value, onChange }: { label: string; value: ActionConfig; onChange: (a: ActionConfig) => void }) {
+export function ActionEditor({ label, value, entityId, onChange }: { label: string; value: ActionConfig; entityId: string; onChange: (a: ActionConfig) => void }) {
+  const kinds = (Object.keys(LABELS) as ActionKind[]).filter((k) => k !== 'toggle' || canToggle(entityId));
   const set = (patch: Partial<ActionConfig>) => onChange({ ...value, ...patch });
   return (
     <fieldset>
       <legend>{label}</legend>
-      <select value={value.action} onChange={(e) => set({ action: e.target.value as ActionKind })}>
-        {(Object.keys(LABELS) as ActionKind[]).map((k) => (
+      <select value={kinds.includes(value.action) ? value.action : 'more-info'} onChange={(e) => set({ action: e.target.value as ActionKind })}>
+        {kinds.map((k) => (
           <option key={k} value={k}>{LABELS[k]}</option>
         ))}
       </select>

@@ -3,7 +3,7 @@ import type { PlanConfig, PlanItem } from './types';
 import { loadConfig, saveConfig, uid } from './api';
 import { hass, useHass } from './ha';
 import { runAction } from './actions';
-import { TOGGLEABLE } from './icons';
+import { canToggle } from './icons';
 import { Plan } from './components/Plan';
 import { Editor } from './components/Editor';
 import { MoreInfo } from './components/MoreInfo';
@@ -74,7 +74,7 @@ export default function App() {
       x: 50, y: 50,
       display: isSensor ? 'text' : dom === 'light' ? 'glow' : 'icon',
       size: 1,
-      tap: { action: TOGGLEABLE.has(dom) || ['script', 'scene', 'button', 'input_button'].includes(dom) ? 'toggle' : 'more-info' },
+      tap: { action: canToggle(entityId) ? 'toggle' : 'more-info' },
       hold: { action: 'more-info' },
     };
     update({ ...config, views: config.views.map((v) => (v.id === view.id ? { ...v, items: [...v.items, item] } : v)) });

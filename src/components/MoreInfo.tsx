@@ -1,6 +1,13 @@
+import { useRef } from 'react';
 import { hass } from '../ha';
 import type { HassEntity } from '../types';
 import { formatState, friendlyName } from '../icons';
+
+/** Lights that can dim: any colour mode beyond plain on/off, or a brightness attribute. */
+const dimmable = (e: HassEntity) => {
+  const modes = e.attributes.supported_color_modes as string[] | undefined;
+  return modes ? modes.some((m) => m !== 'onoff') : e.attributes.brightness != null;
+};
 
 const HIDDEN_ATTRS = new Set(['friendly_name', 'icon', 'entity_picture', 'supported_features', 'supported_color_modes', 'attribution']);
 
@@ -8,6 +15,12 @@ export function MoreInfo({ entityId, entity, onClose }: { entityId: string; enti
   const dom = entityId.split('.')[0];
   const call = (service: string, data: Record<string, any> = {}, d = dom) => hass.callService(d, service, { entity_id: entityId, ...data });
   const bright = entity?.attributes.brightness as number | undefined;
+  const timer = useRef<number>();
+  // Debounced so dragging the slider does not flood Home Assistant.
+  const setBrightness = (pct: number) => {
+    clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => call('turn_on', { brightness_pct: pct }), 150);
+  };
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -53,15 +66,16 @@ export function MoreInfo({ entityId, entity, onClose }: { entityId: string; enti
                 </>
               )}
             </div>
-            {dom === 'light' && entity.state === 'on' && bright != null && (
+            {dom === 'light' && dimmable(entity) && (
               <label className="slider">
-                Brightness
+                Brightness {entity.state === 'on' && bright != null ? `${Math.round((bright / 255) * 100)}%` : '(off)'}
                 <input
+                  key={entity.state === 'on' ? bright : 'off'}
                   type="range"
                   min={1}
-                  max={255}
-                  defaultValue={bright}
-                  onChange={(e) => call('turn_on', { brightness: Number(e.target.value) })}
+                  max={100}
+                  defaultValue={entity.state === 'on' && bright != null ? Math.max(1, Math.round((bright / 255) * 100)) : 1}
+                  onChange={(e) => setBrightness(Number(e.target.value))}
                 />
               </label>
             )}
