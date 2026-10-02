@@ -38,7 +38,7 @@ export function MoreInfo({ entityId, entity, onClose }: { entityId: string; enti
           <>
             <div className="big-state">{formatState(entity)}</div>
             <div className="controls">
-              {['light', 'switch', 'fan', 'input_boolean', 'automation'].includes(dom) && (
+              {['light', 'switch', 'fan', 'input_boolean'].includes(dom) && (
                 <>
                   <button onClick={() => call('turn_on')}>Turn on</button>
                   <button onClick={() => call('turn_off')}>Turn off</button>
