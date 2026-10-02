@@ -30,3 +30,11 @@ export async function deleteImage(file: string): Promise<void> {
 export const mediaUrl = (file: string) => `media/${file}`;
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
+
+export const exportUrl = 'api/export';
+
+export async function importBackup(file: File): Promise<void> {
+  const r = await fetch('api/import', { method: 'POST', body: file });
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(body.error || `Import failed (${r.status})`);
+}

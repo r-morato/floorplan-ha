@@ -87,6 +87,7 @@ Notes for this option:
 4. In **Selected**, choose the display type (icon, glow, text, badge), icon, size, colour,
    and the **tap** / **hold** actions.
 5. Press **Done**. Changes autosave.
+6. **Backup:** in the Views tab, *Export backup* downloads one zip with your layout and all images; *Import backup…* replaces the current setup with a zip. Handy when you rebuild the container or move machines (or just copy the `data/` folder).
 
 Tips: use *Text* for temperature or power sensors, *Glow* for lights, *Badge* for short
 status pills such as "Garage · closed". For a custom action pick *Call service*,

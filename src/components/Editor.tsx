@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import type { DisplayType, HassEntity, PlanConfig, PlanItem, PlanView } from '../types';
 import { ICONS, friendlyName, iconPath } from '../icons';
-import { deleteImage, mediaUrl, uid, uploadImage } from '../api';
+import { deleteImage, exportUrl, importBackup, mediaUrl, uid, uploadImage } from '../api';
 import { ActionEditor } from './ActionEditor';
 import { Icon } from './Icon';
 
@@ -21,6 +21,7 @@ interface Props {
   onUpdateItem: (patch: Partial<PlanItem>) => void;
   onDeleteItem: () => void;
   onError: (msg: string) => void;
+  onReload: () => void;
 }
 
 export function Editor(p: Props) {
@@ -160,7 +161,20 @@ function toHex(c?: string) {
 }
 
 // --- Views ------------------------------------------------------------------------
-function ViewManager({ config, activeViewId, onConfig, onActiveView, onError }: Props) {
+function ViewManager({ config, activeViewId, onConfig, onActiveView, onError, onReload }: Props) {
+  const importRef = useRef<HTMLInputElement>(null);
+  const doImport = async (file?: File) => {
+    if (!file) return;
+    if (!confirm('Importing replaces your current layout and images with the backup. Continue?')) return;
+    try {
+      await importBackup(file);
+      onReload();
+    } catch (e) {
+      onError(e instanceof Error ? e.message : String(e));
+    } finally {
+      if (importRef.current) importRef.current.value = '';
+    }
+  };
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const pending = useRef<{ kind: PlanView['kind']; replaceId?: string }>({ kind: 'floor' });
@@ -243,6 +257,15 @@ function ViewManager({ config, activeViewId, onConfig, onActiveView, onError }: 
           </li>
         ))}
       </ul>
+      <fieldset>
+        <legend>Backup</legend>
+        <p className="hint">Export saves the layout and all images in one zip. Import replaces everything with a backup.</p>
+        <input ref={importRef} type="file" accept=".zip,application/zip" hidden onChange={(e) => doImport(e.target.files?.[0])} />
+        <div className="row">
+          <a className="btn" href={exportUrl} download>Export backup</a>
+          <button onClick={() => importRef.current?.click()}>Import backup…</button>
+        </div>
+      </fieldset>
     </div>
   );
 }

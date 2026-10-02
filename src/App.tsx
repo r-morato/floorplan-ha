@@ -169,6 +169,7 @@ export default function App() {
           onUpdateItem={(p) => selected && mutateItem(selected.id, p)}
           onDeleteItem={deleteItem}
           onError={toast}
+          onReload={() => loadConfig().then((c) => { setConfig(c); setActiveViewId(c.views[0]?.id); setSelectedId(undefined); setSave('idle'); toast('Backup imported'); }, (e) => toast(String(e.message ?? e)))}
         />
       )}
       {moreInfo && <MoreInfo entityId={moreInfo} entity={entities[moreInfo]} onClose={() => setMoreInfo(undefined)} />}

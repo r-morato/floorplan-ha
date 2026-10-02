@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { zipSync, unzipSync } from 'fflate';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8099);
@@ -94,6 +95,47 @@ app.delete('/api/images/:file', (req, res) => {
   if (!/^[a-f0-9]{16}\.(png|jpg|webp|avif|gif)$/.test(file)) return res.status(400).json({ error: 'Bad name' });
   fs.rmSync(path.join(IMAGE_DIR, file), { force: true });
   res.json({ ok: true });
+});
+
+// --- Backup: export / import everything (layout + images) as one zip ----------
+const IMAGE_NAME = /^[a-f0-9]{16}\.(png|jpg|webp|avif|gif)$/;
+
+app.get('/api/export', (_req, res) => {
+  const files = { 'floorplan.json': Buffer.from(JSON.stringify(readConfig(), null, 2)) };
+  for (const f of fs.readdirSync(IMAGE_DIR)) {
+    if (IMAGE_NAME.test(f)) files[`images/${f}`] = [fs.readFileSync(path.join(IMAGE_DIR, f)), { level: 0 }];
+  }
+  const stamp = new Date().toISOString().slice(0, 10);
+  res.set({ 'Content-Type': 'application/zip', 'Content-Disposition': `attachment; filename="floorplan-backup-${stamp}.zip"` });
+  res.send(Buffer.from(zipSync(files)));
+});
+
+// Replaces the current layout and images with the contents of a backup zip.
+app.post('/api/import', express.raw({ type: () => true, limit: '200mb' }), (req, res) => {
+  let entries;
+  try {
+    entries = unzipSync(new Uint8Array(req.body), { filter: (f) => f.originalSize < 100 * 1024 * 1024 });
+  } catch {
+    return res.status(400).json({ error: 'Not a valid backup zip.' });
+  }
+  let cfg;
+  try {
+    cfg = JSON.parse(Buffer.from(entries['floorplan.json'] ?? []).toString('utf8'));
+  } catch { /* handled below */ }
+  if (!cfg || typeof cfg !== 'object' || !Array.isArray(cfg.views)) {
+    return res.status(400).json({ error: 'Backup has no valid floorplan.json.' });
+  }
+  const images = {};
+  for (const [name, data] of Object.entries(entries)) {
+    const m = name.match(/^images\/(.+)$/);
+    if (!m) continue;
+    if (!IMAGE_NAME.test(m[1]) || !sniff(Buffer.from(data))) return res.status(400).json({ error: `Unexpected file in backup: ${name}` });
+    images[m[1]] = Buffer.from(data);
+  }
+  for (const f of fs.readdirSync(IMAGE_DIR)) if (IMAGE_NAME.test(f) && !images[f]) fs.rmSync(path.join(IMAGE_DIR, f), { force: true });
+  for (const [f, data] of Object.entries(images)) fs.writeFileSync(path.join(IMAGE_DIR, f), data);
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2));
+  res.json({ ok: true, views: cfg.views.length, images: Object.keys(images).length });
 });
 
 app.use('/media', express.static(IMAGE_DIR, { immutable: true, maxAge: '365d', index: false, dotfiles: 'deny' }));

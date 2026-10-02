@@ -5,7 +5,9 @@
   "type": "module",
   "description": "Interactive floor plan panel for Home Assistant: upload your plan images, place entities, assign tap/hold actions.",
   "license": "MIT",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "concurrently -k -n server,web \"npm:dev:server\" \"npm:dev:web\"",
     "dev:server": "node --watch server/index.mjs",
@@ -16,6 +18,7 @@
   },
   "dependencies": {
     "express": "^4.21.2",
+    "fflate": "^0.8.3",
     "ws": "^8.18.0"
   },
   "devDependencies": {
