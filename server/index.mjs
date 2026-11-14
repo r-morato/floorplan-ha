@@ -9,6 +9,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { zipSync, unzipSync } from 'fflate';
+import { checkRequest, parseAllowedOrigins, requestInfo } from './guard.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8099);
@@ -33,8 +34,24 @@ function haTarget() {
   return null;
 }
 
+const ALLOWED_ORIGINS = parseAllowedOrigins(process.env.ALLOWED_ORIGINS);
+const guardEnabled = () => !process.env.SUPERVISOR_TOKEN; // see server/guard.mjs
+
+function rejected(req, opts) {
+  if (!guardEnabled()) return null;
+  const reason = checkRequest(requestInfo(req, opts), ALLOWED_ORIGINS);
+  if (reason) console.warn(`Refused ${req.method} ${req.url}: ${reason}`);
+  return reason;
+}
+
 const app = express();
 app.disable('x-powered-by');
+
+app.use((req, res, next) => {
+  const reason = rejected(req);
+  if (reason) return res.status(403).json({ error: reason });
+  next();
+});
 
 app.get('/api/status', (_req, res) => {
   const t = haTarget();
@@ -155,6 +172,10 @@ const wss = new WebSocketServer({ noServer: true });
 server.on('upgrade', (req, socket, head) => {
   const { pathname } = new URL(req.url, 'http://x');
   if (pathname !== '/api/ws') return socket.destroy();
+  if (rejected(req, { upgrade: true })) {
+    socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');
+    return socket.destroy();
+  }
   wss.handleUpgrade(req, socket, head, (ws) => wss.emit('connection', ws));
 });
 
