@@ -14,7 +14,8 @@
     "dev:web": "vite",
     "build": "tsc --noEmit && vite build",
     "start": "node server/index.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test server/*.test.mjs"
   },
   "dependencies": {
     "express": "^4.21.2",
