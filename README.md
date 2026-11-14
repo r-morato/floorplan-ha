@@ -62,6 +62,12 @@ Notes for this option:
 - The container has no login of its own: anyone who can reach port 8099 can use
   and edit the panel with your token's permissions. Keep it on your LAN or behind an
   authenticating proxy.
+- Other web pages can't use it through your browser: requests that change something
+  (the Home Assistant WebSocket, saves, uploads, imports) must come from the panel's
+  own page, and it only answers on local names and IPs (`192.168.x.x`, `nas`,
+  `*.local`, `*.lan`...), which stops DNS rebinding. If you serve it on your own
+  domain through a reverse proxy, set `ALLOWED_ORIGINS` (see below) or requests are
+  refused with a 403 that says why.
 - You can also just open `http://<docker-host>:8099` directly.
 - The *Navigate* action changes the parent Home Assistant page when the panel runs
   inside an iframe on the same origin (add-on ingress). With a Webpage dashboard on a
@@ -75,6 +81,7 @@ Notes for this option:
 | `HA_TOKEN` | | Long-lived access token |
 | `PORT` | `8099` | Listen port |
 | `DATA_DIR` | `/data` | Where `floorplan.json` and `images/` live |
+| `ALLOWED_ORIGINS` | | Comma-separated extra origins to trust, e.g. `https://floorplan.example.com` for a reverse proxy domain. Not needed on a LAN or as an add-on |
 
 ## Using it
 
@@ -103,7 +110,8 @@ npm run build && npm start
 
 Without `HA_URL`/`HA_TOKEN` the app runs in demo mode. Data is written to `./data`.
 
-Layout: `server/index.mjs` (API, uploads, WebSocket proxy), `src/` (React UI),
+Layout: `server/index.mjs` (API, uploads, WebSocket proxy), `server/guard.mjs` (cross-site and
+DNS rebinding checks, tested with `npm test`), `src/` (React UI),
 `floorplan-ha/` (add-on manifest), `Dockerfile`.
 
 ## Publishing the image (maintainers)
